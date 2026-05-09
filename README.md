@@ -19,7 +19,7 @@
 
 ## 概述
 
-iFlow Mod 是 iFlow CLI 的实验性扩展系统，允许你通过修改 `iflow.js` 文件来定制 CLI 行为。Mod 以 `.iflow-mod` 包的形式分发，通过 iFlow Settings Editor GUI 或命令行导入。
+iFlow Mod 是 iFlow CLI 的实验性扩展系统，允许你通过修改 `iflow.js` 文件来定制 CLI 行为。Mod 以 `.iflow-mod` 包的形式分发，通过 iFlow Settings Editor GUI 导入。
 
 ```
 ~/.iflow/mods/iflow/
