@@ -1,0 +1,16 @@
+{
+  "name": "iflow-mod",
+  "version": "1.0.0",
+  "description": "iFlow Mod 打包工具",
+  "main": "build-mod.js",
+  "scripts": {
+    "build": "node build-mod.js ./src"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "archiver": "^7.0.1"
+  },
+  "devDependencies": {
+    "js-beautify": "^1.15.4"
+  }
+}

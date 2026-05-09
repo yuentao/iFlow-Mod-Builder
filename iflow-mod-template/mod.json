@@ -1,0 +1,17 @@
+{
+  "id": "com.example.my-first-mod",
+  "name": "My First iFlow Mod",
+  "version": "1.0.0",
+  "type": "append",
+  "description": "我的第一个 iFlow Mod，演示基本的 append 模式",
+  "author": "Your Name",
+  "category": "customization",
+  "iflowVersion": "1.14.0",
+  "iflowVersionConstraint": "1.14.0+",
+  "icon": "🚀",
+  "tags": ["example", "starter"],
+  "homepage": "https://github.com/yourname/iflow-mod-my-first",
+  "repository": "https://github.com/yourname/iflow-mod-my-first.git",
+  "license": "MIT",
+  "entry": "code.js"
+}

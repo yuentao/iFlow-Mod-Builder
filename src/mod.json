@@ -1,0 +1,16 @@
+{
+  "id": "com.iflow-theme.darcula",
+  "name": "iFlow Darcula 主题",
+  "version": "1.0.0",
+  "type": "prepend",
+  "description": "为 iFlow CLI 终端输出启用 Darcula (IntelliJ) 配色方案，深色背景配合高对比度文字，保护眼睛",
+  "author": "iFlow Team",
+  "category": "自定义",
+  "iflowVersion": "0.5.19",
+  "iflowVersionConstraint": "0.5.19",
+  "icon": "🌙",
+  "tags": ["主题"],
+  "homepage": "https://iflow.ai",
+  "license": "MIT",
+  "entry": "code.js"
+}
