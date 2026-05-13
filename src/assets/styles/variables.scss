@@ -1,0 +1,155 @@
+// Windows 11 Fluent Design System - iFlow Mod 打包工具
+// Color tokens, typography, spacing, shadows, animations
+
+:root {
+  // ── Colors (Light Mode) ──
+  --bg-primary: #f3f3f38e;
+  --bg-secondary: #ffffff70;
+  --bg-tertiary: #ebebeb;
+  --bg-elevated: #ffffffe3;
+  --bg-card: #ffffff;
+  --bg-card-hover: #fafafa;
+
+  --text-primary: #1a1a1a;
+  --text-secondary: #5d5d5d;
+  --text-tertiary: #8a8a8a;
+  --text-on-accent: #ffffff;
+
+  --accent: #0078d4;
+  --accent-hover: #106ebe;
+  --accent-pressed: #005a9e;
+  --accent-light: rgba(0, 120, 212, 0.1);
+  --accent-lighter: rgba(0, 120, 212, 0.05);
+
+  --control-fill: #ffffff;
+  --control-fill-hover: #f5f5f5;
+  --control-fill-active: #e8e8e8;
+  --control-border: #d1d1d1;
+  --control-border-hover: #b3b3b3;
+  --control-border-focus: var(--accent);
+
+  --border: #e0e0e0;
+  --border-light: #f0f0f0;
+  --border-strong: #c4c4c4;
+
+  --success: #107c10;
+  --success-light: rgba(16, 124, 16, 0.1);
+  --warning: #9d5d00;
+  --warning-light: rgba(157, 93, 0, 0.1);
+  --danger: #c42b1c;
+  --danger-light: rgba(196, 43, 28, 0.1);
+
+  --toggle-off: #b3b3b3;
+  --toggle-on: var(--accent);
+  --toggle-thumb: #ffffff;
+  --toggle-on-border: var(--accent);
+
+  --sidebar-bg: #f9f9f9;
+  --sidebar-border: var(--border-light);
+  --sidebar-item-hover: rgba(0, 0, 0, 0.04);
+  --sidebar-item-active-bg: var(--accent-light);
+  --sidebar-item-active-text: var(--accent);
+
+  // ── Typography ──
+  --font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+
+  // ── Spacing (4px grid) ──
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 20px;
+  --space-2xl: 24px;
+  --space-3xl: 32px;
+  --space-4xl: 48px;
+
+  // ── Border Radius ──
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-round: 9999px;
+
+  // ── Shadows (Layer-based Depth) ──
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow: 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.16), 0 8px 16px rgba(0, 0, 0, 0.08);
+
+  // ── Transitions ──
+  --transition-fast: 0.1s ease;
+  --transition: 0.15s ease;
+  --transition-smooth: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  // ── Layout ──
+  --sidebar-width: 220px;
+  --sidebar-collapsed-width: 52px;
+  --header-height: 48px;
+  --content-max-width: 1200px;
+}
+
+// ── Dark Mode ──
+[data-theme='dark'] {
+  --bg-primary: #0d0d0d;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2a2a2a;
+  --bg-elevated: #2d2d2d;
+  --bg-card: #1e1e1e;
+  --bg-card-hover: #252525;
+
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --text-tertiary: #888888;
+  --text-on-accent: #000000;
+
+  --accent: #60cdff;
+  --accent-hover: #4db8e8;
+  --accent-pressed: #3aa3d1;
+  --accent-light: rgba(96, 205, 255, 0.12);
+  --accent-lighter: rgba(96, 205, 255, 0.06);
+
+  --control-fill: #2a2a2a;
+  --control-fill-hover: #333333;
+  --control-fill-active: #3a3a3a;
+  --control-border: #444444;
+  --control-border-hover: #555555;
+
+  --border: #3a3a3a;
+  --border-light: #2a2a2a;
+  --border-strong: #555555;
+
+  --success: #6ccb5f;
+  --success-light: rgba(108, 203, 95, 0.12);
+  --warning: #fcb900;
+  --warning-light: rgba(252, 185, 0, 0.12);
+  --danger: #ff6b6b;
+  --danger-light: rgba(255, 107, 107, 0.12);
+
+  --toggle-off: #555555;
+
+  --sidebar-bg: #141414;
+  --sidebar-border: #2a2a2a;
+  --sidebar-item-hover: rgba(255, 255, 255, 0.05);
+  --sidebar-item-active-bg: var(--accent-light);
+  --sidebar-item-active-text: var(--accent);
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.5);
+}
