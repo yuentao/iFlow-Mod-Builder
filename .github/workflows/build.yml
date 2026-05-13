@@ -44,6 +44,8 @@ jobs:
 
   build-mac:
     needs: create-tag
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -76,11 +78,11 @@ jobs:
 
       - name: Install npm dependencies
         run: npm ci
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & Package macOS
         uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: v__VERSION__
           releaseName: 'v__VERSION__'
@@ -91,6 +93,8 @@ jobs:
 
   build-windows:
     needs: create-tag
+    permissions:
+      contents: write
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -112,11 +116,11 @@ jobs:
 
       - name: Install npm dependencies
         run: npm ci
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & Package Windows
         uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: v__VERSION__
           releaseName: 'v__VERSION__'
