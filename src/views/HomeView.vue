@@ -68,36 +68,19 @@
       </div>
     </div>
 
-    <!-- Recent builds -->
-    <div v-if="buildStore.buildHistory.length > 0" class="recent-section animate-fade-in-up" style="animation-delay: 0.2s">
-      <h3 class="section-title">最近打包</h3>
-      <div class="recent-list">
-        <div
-          v-for="(item, index) in buildStore.buildHistory.slice(0, 5)"
-          :key="index"
-          class="recent-item"
-        >
-          <Puzzle size="16" />
-          <span class="recent-path">{{ item.outputPath }}</span>
-          <span class="recent-size">{{ formatFileSize(item.fileSize) }}</span>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { FolderOpen, FileCode, Folder, ArrowRight, Puzzle, Delete } from '@icon-park/vue-next'
+import { FolderOpen, FileCode, Folder, ArrowRight, Delete } from '@icon-park/vue-next'
 import { useModStore } from '@/stores/mod'
-import { useBuildStore } from '@/stores/build'
 import { tauriInvoke, selectDirectory, selectFile, isTauri } from '@/utils/tauri'
 import { formatFileSize } from '@/utils/format'
 
 const router = useRouter()
 const modStore = useModStore()
-const buildStore = useBuildStore()
 const isDragging = ref(false)
 
 const codeFileSize = computed(() => {

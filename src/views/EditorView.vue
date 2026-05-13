@@ -158,7 +158,7 @@ import { useRouter } from 'vue-router'
 import { Caution, Edit, Setting, ArrowRight } from '@icon-park/vue-next'
 import { useModStore } from '@/stores/mod'
 import { MOD_TYPES, CATEGORIES, LICENSES, VERSION_CONSTRAINTS } from '@/utils/constants'
-import { validateField as validateFieldUtil } from '@/utils/validation'
+import { validateField as validateFieldUtil, isConfigValid } from '@/utils/validation'
 import type { ModConfig } from '@/types/mod'
 
 const router = useRouter()
@@ -183,12 +183,11 @@ function validateField(field: keyof ModConfig) {
 }
 
 onMounted(() => {
-  if (modStore.config && Object.keys(modStore.config).length > 0) {
-    Object.assign(formData, { ...modStore.config })
-  } else {
+  // Ensure config is valid before populating form
+  if (!isConfigValid(modStore.config)) {
     modStore.resetConfig()
-    Object.assign(formData, { ...modStore.config })
   }
+  Object.assign(formData, { ...modStore.config })
 })
 
 watch(formData, (val) => {
