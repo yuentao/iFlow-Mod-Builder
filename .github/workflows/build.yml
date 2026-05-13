@@ -76,6 +76,8 @@ jobs:
 
       - name: Install npm dependencies
         run: npm ci
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & Package macOS
         uses: tauri-apps/tauri-action@v0
@@ -110,6 +112,8 @@ jobs:
 
       - name: Install npm dependencies
         run: npm ci
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & Package Windows
         uses: tauri-apps/tauri-action@v0
