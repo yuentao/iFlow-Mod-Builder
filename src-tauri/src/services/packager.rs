@@ -52,7 +52,7 @@ impl Packager {
         self.create_zip(&files, &output_path, &config.compress_level)?;
 
         // 7. Validate zip
-        if !config.skip_validation {
+        if config.validate_after_build {
             self.validate_zip(&output_path)?;
         }
 

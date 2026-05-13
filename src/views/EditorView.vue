@@ -185,6 +185,9 @@ function validateField(field: keyof ModConfig) {
 onMounted(() => {
   if (modStore.config && Object.keys(modStore.config).length > 0) {
     Object.assign(formData, { ...modStore.config })
+  } else {
+    modStore.resetConfig()
+    Object.assign(formData, { ...modStore.config })
   }
 })
 

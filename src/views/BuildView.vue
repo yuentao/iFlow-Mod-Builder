@@ -106,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { Caution, Tag, FolderOpen, Setting, Puzzle, CloseSmall } from '@icon-park/vue-next'
 import { useModStore } from '@/stores/mod'
 import { useBuildStore } from '@/stores/build'
@@ -127,14 +127,21 @@ const showConfirm = ref(false)
 const buildResult = ref<BuildResult | null>(null)
 
 const buildConfig = reactive<BuildConfig>({
-  modPath: modStore.workDir,
-  outputPath: '~/dist',
+  modPath: '',
+  outputPath: '',
   fileName: '',
   compressLevel: 'standard',
-  skipValidation: false,
   validateAfterBuild: true,
   openAfterBuild: true,
 })
+
+// Keep modPath in sync with store, set default output path
+watch(() => modStore.workDir, (dir) => {
+  buildConfig.modPath = dir
+  if (!buildConfig.outputPath) {
+    buildConfig.outputPath = dir ? dir + '/dist' : ''
+  }
+}, { immediate: true })
 
 function getTypeLabel(type: string) {
   const labels: Record<string, string> = { append: '追加代码', prepend: '前置代码', replace: '完全替换', patch: '补丁模式' }
@@ -164,7 +171,17 @@ async function startBuild() {
 
   try {
     if (isTauri) {
+      // Tauri build is synchronous (no progress events), simulate progress
+      currentFile.value = '打包中...'
+      progress.value = 10
+      const progressTimer = setInterval(() => {
+        if (progress.value < 90) progress.value += Math.random() * 15
+      }, 300)
+
       const result = await tauriInvoke<BuildResult>('start_build', { config: buildConfig })
+      clearInterval(progressTimer)
+      progress.value = 100
+      currentFile.value = '完成'
       buildResult.value = result
       buildStore.setLastResult(result)
     } else {

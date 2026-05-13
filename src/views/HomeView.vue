@@ -165,13 +165,31 @@ async function handleSelectFile() {
 
 async function handleDrop(e: DragEvent) {
   isDragging.value = false
-  const files = e.dataTransfer?.files
-  if (!files || files.length === 0) return
-  const file = files[0]
-  if (file.name.endsWith('.js')) {
-    const content = await file.text()
-    modStore.importCode(file.name, content)
-    router.push('/editor')
+  const items = e.dataTransfer?.items
+  if (!items || items.length === 0) return
+
+  // Try webkitGetAsEntry for directory support
+  const firstItem = items[0]
+  const entry = firstItem.webkitGetAsEntry?.()
+  if (entry?.isDirectory) {
+    // Directory drop - not fully supported in web, fall back to file check
+    const file = firstItem.getAsFile()
+    if (file) {
+      const content = await file.text()
+      modStore.importCode(file.name, content)
+      router.push('/editor')
+    }
+    return
+  }
+
+  // File drop
+  const file = firstItem.getAsFile()
+  if (file) {
+    if (file.name.endsWith('.js') || file.name === 'code.js') {
+      const content = await file.text()
+      modStore.importCode(file.name, content)
+      router.push('/editor')
+    }
   }
 }
 

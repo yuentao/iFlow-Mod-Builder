@@ -76,7 +76,7 @@ export async function buildModInBrowser(
     onProgress(95, '验证包内容...')
 
     // 5. Validate (basic check: can we read it back?)
-    if (!buildConfig.skipValidation) {
+    if (buildConfig.validateAfterBuild) {
       try {
         const verifyZip = new JSZip()
         const verifyResult = await verifyZip.loadAsync(blob)

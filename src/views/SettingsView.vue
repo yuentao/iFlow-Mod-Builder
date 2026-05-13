@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { reactive, watch } from 'vue'
 import { Setting, Theme } from '@icon-park/vue-next'
 import { useSettingsStore } from '@/stores/settings'
 import type { Settings } from '@/types/settings'
@@ -69,6 +69,9 @@ import type { Settings } from '@/types/settings'
 const settingsStore = useSettingsStore()
 
 const settings = reactive<Settings>({ ...settingsStore.settings })
+
+// Theme changes should apply immediately
+watch(() => settings.theme, (val) => settingsStore.updateSetting('theme', val))
 
 function saveSettings() {
   for (const key of Object.keys(settings) as (keyof Settings)[]) {

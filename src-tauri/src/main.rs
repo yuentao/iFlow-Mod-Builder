@@ -3,7 +3,6 @@ mod error;
 mod models;
 mod services;
 
-use std::sync::Arc;
 use commands::build::AppState;
 
 fn main() {
@@ -11,9 +10,9 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_store::Builder::default().build())
-        .manage(Arc::new(AppState {
+        .manage(AppState {
             packager: std::sync::Arc::new(std::sync::Mutex::new(services::packager::Packager::new())),
-        }))
+        })
         .invoke_handler(tauri::generate_handler![
             commands::mod_cmd::read_mod_json,
             commands::mod_cmd::write_mod_json,
