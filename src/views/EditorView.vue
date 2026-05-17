@@ -71,9 +71,7 @@
             </div>
             <div class="form-group">
               <label class="form-label">分类</label>
-              <select v-model="formData.category" class="form-select">
-                <option v-for="c in CATEGORIES" :key="c.value" :value="c.value">{{ c.label }}</option>
-              </select>
+              <input v-model="formData.category" class="form-input" placeholder="如: tool, theme, feature..." />
             </div>
           </div>
 
@@ -157,8 +155,8 @@ import { ref, reactive, nextTick, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Caution, Edit, Setting, ArrowRight } from '@icon-park/vue-next'
 import { useModStore } from '@/stores/mod'
-import { MOD_TYPES, CATEGORIES, LICENSES, VERSION_CONSTRAINTS } from '@/utils/constants'
-import { validateField as validateFieldUtil } from '@/utils/validation'
+import { MOD_TYPES, LICENSES, VERSION_CONSTRAINTS } from '@/utils/constants'
+import { validateField as validateFieldUtil, isConfigValid } from '@/utils/validation'
 import type { ModConfig } from '@/types/mod'
 
 const router = useRouter()
@@ -172,7 +170,7 @@ const errors = ref<Record<string, string>>({})
 
 const formData = reactive<Partial<ModConfig>>({
   id: '', name: '', version: '1.0.0', type: 'append', description: '',
-  author: '', category: 'tool', iflowVersion: '0.5.19', iflowVersionConstraint: '^0.5.19',
+  author: '', category: '', iflowVersion: '0.5.19', iflowVersionConstraint: '^0.5.19',
   icon: '', tags: [], homepage: '', repository: '', license: 'MIT', entry: 'code.js',
 })
 
@@ -183,9 +181,11 @@ function validateField(field: keyof ModConfig) {
 }
 
 onMounted(() => {
-  if (modStore.config && Object.keys(modStore.config).length > 0) {
-    Object.assign(formData, { ...modStore.config })
+  // Ensure config is valid before populating form
+  if (!isConfigValid(modStore.config)) {
+    modStore.resetConfig()
   }
+  Object.assign(formData, { ...modStore.config })
 })
 
 watch(formData, (val) => {
@@ -231,27 +231,68 @@ function saveConfig() {
 </script>
 
 <style lang="scss" scoped>
-.editor-view { max-width: 720px; margin: 0 auto; }
+.editor-view {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
 
+// ── Empty State ──
 .empty-state {
-  display: flex; flex-direction: column; align-items: center;
-  gap: var(--space-lg); padding: var(--space-4xl); text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-4xl);
+  text-align: center;
 }
-.empty-text { font-size: var(--font-size-lg); color: var(--text-secondary); }
 
-.form-section { margin-bottom: var(--space-2xl); }
+.empty-text {
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+}
+
+// ── Form Sections ──
+.form-section {
+  margin-bottom: var(--space-2xl);
+}
+
+// ── Form Actions ──
 .form-actions {
-  display: flex; justify-content: flex-end; gap: var(--space-sm);
-  padding-top: var(--space-lg); border-top: 1px solid var(--border-light);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  padding-top: var(--space-lg);
+  margin-top: var(--space-lg);
+  border-top: 1px solid var(--border-light);
 }
 
+// ── Tags Input ──
 .tags-input {
-  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs); min-height: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 32px;
+  padding: var(--space-xs) 0;
 }
+
 .tag-inline-input {
-  width: 100px; padding: 2px 8px; font-size: var(--font-size-xs);
-  background: var(--control-fill); border: 1px solid var(--control-border);
-  border-radius: var(--radius-sm); outline: none;
-  &:focus { border-color: var(--accent); }
+  width: 100px;
+  padding: 3px 8px;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family);
+  background: var(--control-fill);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  color: var(--text-primary);
+  transition: border-color var(--transition);
+
+  &:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-light);
+  }
 }
 </style>

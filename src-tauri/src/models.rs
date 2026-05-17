@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ModConfig {
     pub id: String,
     pub name: String,
@@ -13,9 +14,9 @@ pub struct ModConfig {
     pub author: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub category: Option<String>,
-    #[serde(rename = "iflowVersion", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub iflow_version: Option<String>,
-    #[serde(rename = "iflowVersionConstraint", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub iflow_version_constraint: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon: Option<String>,
@@ -38,12 +39,13 @@ pub struct FileInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BuildConfig {
     pub mod_path: String,
     pub output_path: String,
     pub file_name: String,
     pub compress_level: String,
-    pub skip_validation: bool,
+    pub validate_after_build: bool,
     pub open_after_build: bool,
 }
 
@@ -56,6 +58,7 @@ pub struct BuildProgress {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Settings {
     pub default_output_path: String,
     pub default_compress_level: String,
@@ -77,6 +80,7 @@ impl Default for Settings {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BuildResult {
     pub success: bool,
     pub output_path: String,

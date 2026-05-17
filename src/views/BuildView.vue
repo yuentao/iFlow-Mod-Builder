@@ -106,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { Caution, Tag, FolderOpen, Setting, Puzzle, CloseSmall } from '@icon-park/vue-next'
 import { useModStore } from '@/stores/mod'
 import { useBuildStore } from '@/stores/build'
@@ -127,14 +127,21 @@ const showConfirm = ref(false)
 const buildResult = ref<BuildResult | null>(null)
 
 const buildConfig = reactive<BuildConfig>({
-  modPath: modStore.workDir,
-  outputPath: '~/dist',
+  modPath: '',
+  outputPath: '',
   fileName: '',
   compressLevel: 'standard',
-  skipValidation: false,
   validateAfterBuild: true,
   openAfterBuild: true,
 })
+
+// Keep modPath in sync with store, set default output path
+watch(() => modStore.workDir, (dir) => {
+  buildConfig.modPath = dir
+  if (!buildConfig.outputPath) {
+    buildConfig.outputPath = dir ? dir + '/dist' : ''
+  }
+}, { immediate: true })
 
 function getTypeLabel(type: string) {
   const labels: Record<string, string> = { append: '追加代码', prepend: '前置代码', replace: '完全替换', patch: '补丁模式' }
@@ -164,7 +171,24 @@ async function startBuild() {
 
   try {
     if (isTauri) {
+      // Write mod.json to disk before building (Rust backend reads it from disk)
+      currentFile.value = '写入 mod.json...'
+      progress.value = 5
+      const modJsonPath = buildConfig.modPath + '/mod.json'
+      const modJsonContent = JSON.stringify(modConfig.value, null, 2)
+      await tauriInvoke('write_file', { path: modJsonPath, content: modJsonContent })
+
+      // Tauri build is synchronous (no progress events), simulate progress
+      currentFile.value = '打包中...'
+      progress.value = 10
+      const progressTimer = setInterval(() => {
+        if (progress.value < 90) progress.value += Math.random() * 15
+      }, 300)
+
       const result = await tauriInvoke<BuildResult>('start_build', { config: buildConfig })
+      clearInterval(progressTimer)
+      progress.value = 100
+      currentFile.value = '完成'
       buildResult.value = result
       buildStore.setLastResult(result)
     } else {
@@ -188,24 +212,113 @@ async function startBuild() {
 </script>
 
 <style lang="scss" scoped>
-.build-view { max-width: 720px; margin: 0 auto; }
-.empty-state { display: flex; flex-direction: column; align-items: center; gap: var(--space-lg); padding: var(--space-4xl); text-align: center; }
-.empty-text { font-size: var(--font-size-lg); color: var(--text-secondary); }
-.build-content { display: flex; flex-direction: column; gap: var(--space-lg); }
+.build-view {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
 
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm) var(--space-xl); }
-.info-item { display: flex; justify-content: space-between; align-items: center; padding: var(--space-xs) 0; border-bottom: 1px solid var(--border-light); }
-.info-label { font-size: var(--font-size-sm); color: var(--text-secondary); }
-.info-value { font-size: var(--font-size-sm); color: var(--text-primary); font-weight: var(--font-weight-medium); }
+// ── Empty State ──
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-4xl);
+  text-align: center;
+}
 
-.input-with-btn { display: flex; gap: var(--space-sm); }
-.input-with-btn .form-input { flex: 1; }
+.empty-text {
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+}
 
-.option-row { display: flex; justify-content: space-between; align-items: center; padding: var(--space-sm) 0; }
-.option-label { font-size: var(--font-size-sm); color: var(--text-primary); }
+// ── Info Grid ──
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xs) var(--space-xl);
+}
 
-.progress-info { display: flex; justify-content: space-between; margin-bottom: var(--space-sm); font-size: var(--font-size-sm); color: var(--text-secondary); }
-.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm) var(--space-xl); }
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border-light);
 
-.build-actions { display: flex; justify-content: flex-end; gap: var(--space-sm); padding-top: var(--space-lg); border-top: 1px solid var(--border-light); }
+  &:last-child, &:nth-last-child(2) {
+    border-bottom: none;
+  }
+}
+
+.info-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.info-value {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+  text-align: right;
+  margin-left: var(--space-md);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ── Input with Button ──
+.input-with-btn {
+  display: flex;
+  gap: var(--space-sm);
+
+  .form-input {
+    flex: 1;
+  }
+}
+
+// ── Option Row ──
+.option-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) 0;
+
+  & + & {
+    border-top: 1px solid var(--border-light);
+  }
+}
+
+.option-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+// ── Progress ──
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+// ── Result Grid ──
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xs) var(--space-xl);
+}
+
+// ── Build Actions ──
+.build-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-light);
+}
 </style>

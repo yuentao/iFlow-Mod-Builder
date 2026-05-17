@@ -5,7 +5,6 @@ export interface BuildConfig {
   outputPath: string
   fileName: string
   compressLevel: CompressLevel
-  skipValidation: boolean
   validateAfterBuild: boolean
   openAfterBuild: boolean
 }

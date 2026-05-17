@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "identifier": "com.iflow.mod-gui",
   "build": {
-    "beforeDevCommand": "npm run dev",
+    "beforeDevCommand": "start /B npm run dev",
     "beforeBuildCommand": "npm run build",
     "devUrl": "http://localhost:5173",
     "frontendDist": "../dist"
@@ -13,7 +13,7 @@
       {
         "title": "iFlow Mod 打包工具",
         "width": 800,
-        "height": 500,
+        "height": 700,
         "resizable": false,
         "maximizable": false,
         "center": true,
