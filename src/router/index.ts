@@ -20,12 +20,6 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/BuildView.vue'),
     meta: { title: '打包' },
   },
-  {
-    path: '/settings',
-    name: 'Settings',
-    component: () => import('@/views/SettingsView.vue'),
-    meta: { title: '设置' },
-  },
 ]
 
 const router = createRouter({

@@ -35,28 +35,30 @@ impl Packager {
         // 3. Validate required fields
         self.validate_mod_config(&mod_json)?;
 
-        // 4. Collect files
-        let files = self.collect_files(&config.mod_path)?;
-
-        // 5. Generate output path
-        let output_file = config.file_name.clone();
+        // 4. Create output directory first (needed before collecting files)
         let output_dir = PathBuf::from(&config.output_path);
         if !output_dir.exists() {
             fs::create_dir_all(&output_dir)
                 .map_err(|e| AppError::BuildError(format!("无法创建输出目录: {}", e)))?;
         }
+
+        // 5. Collect files (only mod.json + entry file)
+        let files = self.collect_files(&config.mod_path, &mod_json)?;
+
+        // 6. Generate output path
+        let output_file = config.file_name.clone();
         let output_path = output_dir.join(&output_file);
 
-        // 6. Create zip
+        // 7. Create zip
         let file_count = files.len();
         self.create_zip(&files, &output_path, &config.compress_level)?;
 
-        // 7. Validate zip
+        // 8. Validate zip
         if config.validate_after_build {
             self.validate_zip(&output_path)?;
         }
 
-        // 8. Get file size
+        // 9. Get file size
         let file_size = fs::metadata(&output_path)
             .map(|m| m.len())
             .unwrap_or(0);
@@ -110,47 +112,28 @@ impl Packager {
         Ok(())
     }
 
-    fn collect_files(&self, mod_path: &str) -> Result<Vec<FileInfo>, AppError> {
+    fn collect_files(&self, mod_path: &str, mod_config: &ModConfig) -> Result<Vec<FileInfo>, AppError> {
         let mut files = Vec::new();
-        let path = Path::new(mod_path);
+        let base = Path::new(mod_path);
 
-        self.collect_files_recursive(path, path, &mut files)?;
+        // 1. Always include mod.json
+        let mod_json_path = base.join("mod.json");
+        files.push(FileInfo {
+            full_path: mod_json_path.to_string_lossy().to_string(),
+            relative_path: "mod.json".to_string(),
+        });
+
+        // 2. Include entry file (default: code.js)
+        let entry_file = mod_config.entry.as_deref().unwrap_or("code.js");
+        let entry_path = base.join(entry_file);
+        if entry_path.exists() {
+            files.push(FileInfo {
+                full_path: entry_path.to_string_lossy().to_string(),
+                relative_path: entry_file.to_string(),
+            });
+        }
 
         Ok(files)
-    }
-
-    fn collect_files_recursive(
-        &self,
-        dir: &Path,
-        base_dir: &Path,
-        files: &mut Vec<FileInfo>,
-    ) -> Result<(), AppError> {
-        for entry in fs::read_dir(dir).map_err(|e| AppError::IoError(e))? {
-            let entry = entry.map_err(|e| AppError::IoError(e))?;
-            let file_path = entry.path();
-            let file_name = file_path.file_name()
-                .and_then(|n| n.to_str())
-                .unwrap_or("");
-
-            // Skip .iflow-mod files and hidden files
-            if file_name.starts_with('.') || file_name.ends_with(".iflow-mod") {
-                continue;
-            }
-
-            if file_path.is_dir() {
-                self.collect_files_recursive(&file_path, base_dir, files)?;
-            } else {
-                let relative_path = file_path.strip_prefix(base_dir)
-                    .map_err(|e| AppError::BuildError(format!("路径错误: {}", e)))?;
-                // Use forward slashes for zip paths
-                let relative_str = relative_path.to_string_lossy().replace('\\', "/");
-                files.push(FileInfo {
-                    full_path: file_path.to_string_lossy().to_string(),
-                    relative_path: relative_str,
-                });
-            }
-        }
-        Ok(())
     }
 
     fn create_zip(

@@ -9,8 +9,9 @@
     <div
       class="drop-zone"
       :class="{ 'drop-zone--active': isDragging }"
-      @dragover.prevent="isDragging = true"
-      @dragleave.prevent="isDragging = false"
+      @dragover.prevent
+      @dragenter.prevent="onDragEnter"
+      @dragleave="onDragLeave"
       @drop.prevent="handleDrop"
       @click="handleSelectDirectory"
     >
@@ -82,6 +83,20 @@ import { formatFileSize } from '@/utils/format'
 const router = useRouter()
 const modStore = useModStore()
 const isDragging = ref(false)
+let dragCounter = 0
+
+function onDragEnter() {
+  dragCounter++
+  isDragging.value = true
+}
+
+function onDragLeave() {
+  dragCounter--
+  if (dragCounter <= 0) {
+    dragCounter = 0
+    isDragging.value = false
+  }
+}
 
 const codeFileSize = computed(() => {
   return formatFileSize(new TextEncoder().encode(modStore.codeContent).length)
@@ -148,31 +163,49 @@ async function handleSelectFile() {
 
 async function handleDrop(e: DragEvent) {
   isDragging.value = false
-  const items = e.dataTransfer?.items
-  if (!items || items.length === 0) return
+  dragCounter = 0
 
-  // Try webkitGetAsEntry for directory support
-  const firstItem = items[0]
-  const entry = firstItem.webkitGetAsEntry?.()
-  if (entry?.isDirectory) {
-    // Directory drop - not fully supported in web, fall back to file check
-    const file = firstItem.getAsFile()
-    if (file) {
-      const content = await file.text()
-      modStore.importCode(file.name, content)
+  const files = e.dataTransfer?.files
+  if (!files || files.length === 0) return
+
+  // Detect if it's a directory drop via items API
+  const items = e.dataTransfer?.items
+  let isDirectory = false
+  if (items && items.length > 0) {
+    const entry = items[0]?.webkitGetAsEntry?.()
+    isDirectory = entry?.isDirectory === true
+  }
+
+  if (isDirectory) {
+    // Directory drop: iterate through all files to find code.js and mod.json
+    let codeFile: File | null = null
+    let modJsonFile: File | null = null
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i]
+      const fileName = f.name
+      if (fileName === 'code.js') codeFile = f
+      if (fileName === 'mod.json') modJsonFile = f
+    }
+    if (codeFile) {
+      const content = await codeFile.text()
+      // Use webkitRelativePath to derive the directory path
+      const relativePath = codeFile.webkitRelativePath || codeFile.name
+      modStore.importCode(relativePath, content)
+      if (modJsonFile) {
+        try { modStore.loadFromModJson(JSON.parse(await modJsonFile.text())) } catch { /* ignore */ }
+      }
       router.push('/editor')
     }
     return
   }
 
-  // File drop
-  const file = firstItem.getAsFile()
-  if (file) {
-    if (file.name.endsWith('.js') || file.name === 'code.js') {
-      const content = await file.text()
-      modStore.importCode(file.name, content)
-      router.push('/editor')
-    }
+  // Single file drop
+  const file = files[0]
+  if (!file) return
+  if (file.name === 'code.js' || file.name.endsWith('.js')) {
+    const content = await file.text()
+    modStore.importCode(file.name, content)
+    router.push('/editor')
   }
 }
 
@@ -199,20 +232,37 @@ function clearWorkspace() { modStore.clearWorkspace() }
 </script>
 
 <style lang="scss" scoped>
-.home-view { max-width: 640px; margin: 0 auto; }
-.welcome-section { margin-bottom: var(--space-2xl); }
+.home-view {
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+// ── Welcome Section ──
+.welcome-section {
+  text-align: center;
+  padding: var(--space-2xl) 0 var(--space-lg);
+}
+
 .welcome-title {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   margin-bottom: var(--space-sm);
+  letter-spacing: -0.02em;
 }
+
 .welcome-desc {
   font-size: var(--font-size-base);
   color: var(--text-secondary);
   line-height: var(--line-height-normal);
+  max-width: 420px;
+  margin: 0 auto;
 }
 
+// ── Drop Zone ──
 .drop-zone {
   border: 2px dashed var(--border-strong);
   border-radius: var(--radius-xl);
@@ -221,48 +271,192 @@ function clearWorkspace() { modStore.clearWorkspace() }
   cursor: pointer;
   transition: all var(--transition-smooth);
   background: var(--bg-card);
-  &:hover { border-color: var(--accent); background: var(--accent-lighter); }
-  &--active { border-color: var(--accent); background: var(--accent-light); transform: scale(1.01); }
-}
-.drop-zone-content { display: flex; flex-direction: column; align-items: center; gap: var(--space-lg); }
-.drop-zone-icon { color: var(--accent); }
-.drop-zone-title { font-size: var(--font-size-lg); font-weight: var(--font-weight-medium); color: var(--text-primary); }
-.drop-zone-hint { font-size: var(--font-size-sm); color: var(--text-tertiary); margin-top: var(--space-xs); }
+  position: relative;
+  overflow: hidden;
 
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--accent-lighter) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity var(--transition-smooth);
+  }
+
+  &:hover {
+    border-color: var(--accent);
+    background: var(--accent-lighter);
+    box-shadow: 0 0 0 4px var(--accent-lighter);
+    &::before { opacity: 1; }
+  }
+
+  &--active {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    transform: scale(1.015);
+    box-shadow: 0 0 0 4px var(--accent-light);
+  }
+}
+
+.drop-zone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  position: relative;
+  z-index: 1;
+}
+
+.drop-zone-icon {
+  color: var(--accent);
+  transition: transform var(--transition-smooth);
+  .drop-zone:hover & { transform: translateY(-2px); }
+}
+
+.drop-zone-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.drop-zone-hint {
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+  margin-top: var(--space-xs);
+}
+
+// ── Separator ──
 .separator {
-  display: flex; align-items: center; margin: var(--space-xl) 0; gap: var(--space-md);
-  &::before, &::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin: var(--space-xs) 0;
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+  }
 }
-.separator-text { font-size: var(--font-size-sm); color: var(--text-tertiary); }
 
-.import-actions { text-align: center; }
+.separator-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+  padding: 0 var(--space-sm);
+}
 
-.workspace-info { margin-top: var(--space-2xl); }
+// ── Import Actions ──
+.import-actions {
+  text-align: center;
+}
+
+// ── Workspace Card ──
+.workspace-info {
+  animation: fadeInUp var(--transition-smooth) ease forwards;
+}
+
 .workspace-card-header {
-  display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border-light);
 }
-.workspace-icon { color: var(--accent); }
-.workspace-path { font-family: var(--font-mono); font-size: var(--font-size-sm); color: var(--text-secondary); word-break: break-all; }
-.workspace-card-body { display: flex; flex-direction: column; gap: var(--space-xs); margin-bottom: var(--space-lg); }
-.workspace-detail { display: flex; justify-content: space-between; align-items: center; }
-.workspace-label { font-size: var(--font-size-sm); color: var(--text-secondary); }
-.workspace-value { font-size: var(--font-size-sm); color: var(--text-primary); font-weight: var(--font-weight-medium); }
-.workspace-card-actions { display: flex; gap: var(--space-sm); align-items: center; }
 
-.recent-section { margin-top: var(--space-2xl); }
+.workspace-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.workspace-path {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  word-break: break-all;
+  line-height: var(--line-height-tight);
+}
+
+.workspace-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-lg);
+}
+
+.workspace-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-xs) 0;
+}
+
+.workspace-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.workspace-value {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.workspace-card-actions {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-light);
+}
+
+// ── Recent Section ──
+.recent-section {
+  margin-top: var(--space-lg);
+}
+
 .section-title {
-  font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold);
-  color: var(--text-primary); margin-bottom: var(--space-md);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
 }
-.recent-list { display: flex; flex-direction: column; gap: var(--space-xs); }
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
 .recent-item {
-  display: flex; align-items: center; gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md); border-radius: var(--radius);
-  background: var(--bg-card); border: 1px solid var(--border-light);
-  font-size: var(--font-size-sm); color: var(--text-secondary);
-  transition: background var(--transition);
-  &:hover { background: var(--bg-card-hover); }
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  transition: all var(--transition);
+
+  &:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border);
+  }
 }
-.recent-path { flex: 1; font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.recent-size { color: var(--text-tertiary); flex-shrink: 0; }
+
+.recent-path {
+  flex: 1;
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-size {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
 </style>

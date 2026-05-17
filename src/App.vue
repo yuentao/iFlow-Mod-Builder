@@ -76,10 +76,9 @@ const navItems = [
   { path: '/', label: '首页' },
   { path: '/editor', label: '编辑' },
   { path: '/build', label: '打包' },
-  { path: '/settings', label: '设置' },
 ]
 
-const routeOrder = ['/', '/editor', '/build', '/settings']
+const routeOrder = ['/', '/editor', '/build']
 
 function isVisited(path: string): boolean {
   const currentIdx = routeOrder.indexOf(route.path)
@@ -104,12 +103,13 @@ function isVisited(path: string): boolean {
   align-items: center;
   height: 56px;
   min-height: 56px;
-  padding: 0 var(--space-2xl);
+  padding: 0 var(--space-3xl);
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--border-light);
   user-select: none;
-  gap: var(--space-xl);
+  gap: var(--space-2xl);
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .top-bar-brand {
@@ -117,11 +117,15 @@ function isVisited(path: string): boolean {
   align-items: center;
   gap: var(--space-sm);
   flex-shrink: 0;
+  padding-right: var(--space-lg);
+  border-right: 1px solid var(--border-light);
 }
 
 .brand-logo {
   width: 22px;
   height: 22px;
+  transition: transform var(--transition-smooth);
+  &:hover { transform: scale(1.1); }
 }
 
 .brand-title {
@@ -138,23 +142,32 @@ function isVisited(path: string): boolean {
   align-items: center;
   flex: 1;
   justify-content: center;
+  gap: 0;
 }
 
 .step-item {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: 6px 12px;
+  padding: 8px 16px;
   border-radius: var(--radius-lg);
   text-decoration: none;
   cursor: pointer;
   transition: all var(--transition-smooth);
   white-space: nowrap;
+  position: relative;
 
   &:hover:not(.active) {
     background: var(--sidebar-item-hover);
-    .step-dot { border-color: var(--accent); }
+    .step-dot {
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
     .step-label { color: var(--text-primary); }
+  }
+
+  &:active:not(.active) {
+    transform: scale(0.97);
   }
 }
 
@@ -162,8 +175,8 @@ function isVisited(path: string): boolean {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   border: 2px solid var(--border-strong);
   background: transparent;
@@ -172,7 +185,7 @@ function isVisited(path: string): boolean {
 }
 
 .step-num {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: var(--font-weight-semibold);
   color: var(--text-tertiary);
   line-height: 1;
@@ -187,21 +200,34 @@ function isVisited(path: string): boolean {
 .step-label {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  font-weight: var(--font-weight-normal);
+  font-weight: var(--font-weight-medium);
   transition: all var(--transition-smooth);
 }
 
 // ── Connector ──
 .step-connector {
-  width: 48px;
+  width: 40px;
   height: 2px;
   background: var(--border);
   border-radius: 1px;
   flex-shrink: 0;
   transition: background var(--transition-smooth);
+  position: relative;
 
-  &.completed {
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 100%;
     background: var(--accent);
+    border-radius: 1px;
+    transition: width var(--transition-smooth);
+  }
+
+  &.completed::after {
+    width: 100%;
   }
 }
 
@@ -210,24 +236,27 @@ function isVisited(path: string): boolean {
   .step-dot {
     background: var(--accent);
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
   }
 
   .step-label {
     color: var(--text-primary);
-    font-weight: var(--font-weight-medium);
   }
 }
 
 // ── Active step ──
 .step-item.active {
+  background: var(--accent-lighter);
+
   .step-dot {
     background: var(--accent);
     border-color: var(--accent);
     box-shadow: 0 0 0 4px var(--accent-light);
+    transform: scale(1.05);
   }
 
   .step-label {
-    color: var(--sidebar-item-active-text);
+    color: var(--accent);
     font-weight: var(--font-weight-semibold);
   }
 }
@@ -235,11 +264,14 @@ function isVisited(path: string): boolean {
 // ── Footer ──
 .top-bar-footer {
   flex-shrink: 0;
+  padding-left: var(--space-lg);
+  border-left: 1px solid var(--border-light);
 }
 
 .app-version {
   font-size: var(--font-size-xs);
   color: var(--text-tertiary);
+  font-weight: var(--font-weight-medium);
 }
 
 // ── Main Content ──

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "identifier": "com.iflow.mod-gui",
   "build": {
-    "beforeDevCommand": "npm run dev",
+    "beforeDevCommand": "start /B npm run dev",
     "beforeBuildCommand": "npm run build",
     "devUrl": "http://localhost:5173",
     "frontendDist": "../dist"

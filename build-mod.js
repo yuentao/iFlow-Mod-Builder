@@ -44,14 +44,13 @@ async function buildMod(modPath, outputPath = './dist') {
 
     archive.pipe(output);
 
-    // 添加文件（排除 .iflow-mod 和隐藏文件）
-    const files = fs.readdirSync(modPath);
-    files.forEach(file => {
-      if (!file.startsWith('.') && !file.endsWith('.iflow-mod')) {
-        const filePath = path.join(modPath, file);
-        if (fs.statSync(filePath).isFile()) {
-          archive.file(filePath, { name: file });
-        }
+    // 添加文件（仅 mod.json + entry 文件）
+    const entryFile = modJson.entry || 'code.js';
+    const filesToPack = ['mod.json', entryFile];
+    filesToPack.forEach(file => {
+      const filePath = path.join(modPath, file);
+      if (fs.existsSync(filePath)) {
+        archive.file(filePath, { name: file });
       }
     });
 

@@ -6,15 +6,6 @@ export const MOD_TYPES = [
   { value: 'patch', label: '补丁模式', description: '精确修补（未实现）' },
 ] as const
 
-// Category options
-export const CATEGORIES = [
-  { value: 'tool', label: '工具类' },
-  { value: 'theme', label: '主题类' },
-  { value: 'feature', label: '功能增强' },
-  { value: 'integration', label: '集成类' },
-  { value: 'other', label: '其他' },
-] as const
-
 // License options
 export const LICENSES = [
   { value: 'MIT', label: 'MIT' },

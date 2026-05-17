@@ -233,7 +233,12 @@ a {
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
-  transition: box-shadow var(--transition);
+  transition: box-shadow var(--transition-smooth), border-color var(--transition-smooth);
+
+  &:hover {
+    box-shadow: var(--shadow-sm);
+    border-color: var(--border);
+  }
 }
 
 .card-title {
@@ -371,9 +376,31 @@ a {
 
 .progress-fill {
   height: 100%;
-  background: var(--accent);
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
   border-radius: 2px;
-  transition: width 0.2s ease;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 100%
+    );
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 // ── Tags ──
